@@ -26,7 +26,7 @@ init : flags -> Url.Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
 init flags url key =
     ( {  counter = 1
         , key = key
-        , message = "Initial data: url,path = " ++ url.path ++ ", " ++ (url.query |> Maybe.withDefault "")
+        , message = "Initial data: url, path = " ++ url.path ++ ", " ++ (url.query |> Maybe.withDefault "")
       } 
       , Cmd.none 
     )
@@ -40,8 +40,15 @@ view model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
    case msg of 
-     Zilch -> 
+    Zilch -> 
       ( {model | counter = model.counter + 1}, Cmd.none )
+    HandleUrlRequest r -> 
+       case r of 
+         Browser.Internal url -> ({model | message = "Internal url request: url, path = " ++ url.path ++ ", " ++ (url.query |> Maybe.withDefault "")}, Cmd.none)
+         Browser.External urlString -> ({model | message = "External url request: " ++ urlString }, Cmd.none)
+    UrlChange url ->
+        ({model | message = "UrlChange: url, path = " ++ url.path ++ ", " ++ (url.query |> Maybe.withDefault "")}, Cmd.none)
+        
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -49,14 +56,15 @@ subscriptions model =
 
 
 onUrlRequest : Browser.UrlRequest -> Msg
-onUrlRequest r =    
-    Debug.log "url request" r
-        |> always Zilch
+onUrlRequest r =   
+    HandleUrlRequest r
 
 
 onUrlChange : Url.Url -> Msg
 onUrlChange u =
-    Debug.log "url change" u
-        |> always Zilch
+   UrlChange u
 
-type Msg = Zilch
+type Msg = 
+    Zilch 
+    | HandleUrlRequest Browser.UrlRequest
+    | UrlChange Url.Url
