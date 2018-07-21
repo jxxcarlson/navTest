@@ -1,10 +1,15 @@
+module Main2 exposing(..)
+
 import Browser.Navigation
 import Browser
 import Url
+import Browser.Navigation as Nav
 import Html exposing(Html)
 
 import Element exposing (..)
 import Element.Font as Font
+
+import Parser exposing(..)
 
 
 main : Program () Model Msg
@@ -29,7 +34,7 @@ init : flags -> Url.Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
 init flags url key =
     ( {  counter = 1
         , key = key
-        , message = "Initial data: url, path = " ++ url.path ++ ", " ++ (url.query |> Maybe.withDefault "")
+        , message = initialMessage url
       } 
       , Cmd.none 
     )
@@ -49,6 +54,11 @@ view_ model =
                         { url = "/yo?yada=no"
                         , label = text "Internal link"
                         }
+
+                   , Element.newTabLink  [Font.color (Element.rgb 0 0 1)]
+                        { url = "http://elm-lang.org"
+                        , label = text "elm-lang.org"
+                        }
                    , Element.el [] (text model.message)
                 ]
     
@@ -60,10 +70,13 @@ update msg model =
       ( {model | counter = model.counter + 1}, Cmd.none )
     HandleUrlRequest r -> 
        case r of 
-         Browser.Internal url -> ({model | message = "Internal url request: url, path = " ++ url.path ++ ", " ++ (url.query |> Maybe.withDefault "")}, Cmd.none)
-         Browser.External urlString -> ({model | message = "External url request: " ++ urlString }, Cmd.none)
+         Browser.Internal url -> 
+            ( {   model | message = internalUrlMessage url }
+                , Nav.pushUrl model.key (Url.toString url)
+            )
+         Browser.External urlString -> ({model | message = externalUrlMessage urlString},  Nav.load urlString)
     UrlChange url ->
-        ({model | message = "UrlChange: url, path = " ++ url.path ++ ", " ++ (url.query |> Maybe.withDefault "")}, Cmd.none)
+        ({model | message = changeUrlMessage url}, Nav.load (Url.toString url))
         
 
 subscriptions : Model -> Sub Msg
@@ -84,3 +97,72 @@ type Msg =
     Zilch 
     | HandleUrlRequest Browser.UrlRequest
     | UrlChange Url.Url
+
+-- HELPERS 
+
+initialMessage url = 
+  case (Parser.run documentID url.path) of 
+    Ok docID -> documentIDString docID 
+    Err _ -> "Error parsing path (" ++ url.path ++ ")"
+
+initialMessage1 url = 
+  "Initial data: url, path = " ++ url.path ++ ", " ++ (url.query |> Maybe.withDefault "")
+
+internalUrlMessage url = 
+  "Internal url request: url, path = " ++ url.path ++ ", " ++ (url.query |> Maybe.withDefault "")
+
+externalUrlMessage urlString = 
+  "External: url = " ++ urlString
+
+changeUrlMessage url = 
+  "UrlChange: url, path = " ++ url.path ++ ", " ++ (url.query |> Maybe.withDefault "")
+
+-- PARSER
+
+type DocumentID = 
+   DocumentID DocumentID_
+   
+type DocumentID_ = NumericalID Int | UUID String 
+
+{-|  
+    "Parser.run documentID /public/doc/123 => NumericalID 123
+    "Parser.run documentID /public/doc/jxxcarslson.foo" => UUID "jxxcarlson.foo"
+-}
+documentID : Parser DocumentID 
+documentID = 
+  succeed DocumentID
+    |. symbol "/public/doc/"
+    |= oneOf [ numericalID, uuid ]
+
+
+numericalID : Parser DocumentID_
+numericalID = 
+  Parser.map NumericalID int
+
+
+uuid : Parser DocumentID_
+uuid = 
+  Parser.map UUID uuidString 
+
+uuidString : Parser String
+uuidString =
+  getChompedString <|
+    succeed ()
+      |. chompIf isStartChar
+      |. chompWhile isInnerChar
+
+isStartChar : Char -> Bool
+isStartChar char =
+  Char.isAlpha char
+
+isInnerChar : Char -> Bool
+isInnerChar char =
+  isStartChar char || Char.isDigit char ||  char == '_' ||  char == '.'
+
+documentIDString : DocumentID -> String 
+documentIDString (DocumentID documentID_)  = 
+  case documentID_ of 
+    NumericalID k -> "Numerical ID = " ++ (String.fromInt k)
+    UUID str -> "UUID = " ++ str
+
+    
