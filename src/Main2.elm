@@ -1,8 +1,11 @@
 import Browser.Navigation
 import Browser
 import Url
-import Html exposing (text, a, p)
-import Html.Attributes exposing (href)
+import Html exposing(Html)
+
+import Element exposing (..)
+import Element.Font as Font
+
 
 main : Program () Model Msg
 main =
@@ -31,11 +34,24 @@ init flags url key =
       , Cmd.none 
     )
 
-view : Model -> Browser.Document msg
+
+view : Model -> Browser.Document Msg
 view model =
-      Browser.Document "Hi" [ 
-          a [href "/yo?yada=no"] [text <| "Link" ]
-          , p [] [text (model.message)] ]
+  {   title = "Nav Test"
+    , body = [view_ model]
+  }
+
+view_ : Model -> Html Msg
+view_ model =
+   Element.layout [Font.size 14, width fill, height fill, clipY] <|
+        Element.column [ width fill, height fill, padding 30, spacing 15 ] 
+                [   Element.link  [Font.color (Element.rgb 0 0 1)]
+                        { url = "/yo?yada=no"
+                        , label = text "Internal link"
+                        }
+                   , Element.el [] (text model.message)
+                ]
+    
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
