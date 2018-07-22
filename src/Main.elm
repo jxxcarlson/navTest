@@ -32,7 +32,7 @@ type alias Model = {
 init : flags -> Url.Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
 init flags url key =
     ( {   key = key
-        , message = initialMessage url
+        , message = urlMessage url
       } 
       , Cmd.none 
     )
@@ -49,17 +49,17 @@ view_ model =
    Element.layout [Font.size 14, width fill, height fill, clipY] <|
         Element.column [ width fill, height fill, padding 30, spacing 15 ] 
                 [   Element.link  [Font.color (Element.rgb 0 0 1)]
-                        { url = "/ladidah?friend=yes"
-                        , label = text "Internal link: /ladidah?friend=yes  "
+                        { url = "/api/public/documents?author=twain"
+                        , label = text "Internal link: /api/public/documents?author=twain"
                         }
 
-                    , Element.newTabLink  [Font.color (Element.rgb 0 0 1)]
-                        { url = "http://elm-lang.org"
-                        , label = text "http:/elm-lang.org"
-                        }
+                    -- , Element.newTabLink  [Font.color (Element.rgb 0 0 1)]
+                    --     { url = "http://elm-lang.org"
+                    --     , label = text "http:/elm-lang.org"
+                    --     }
                     , Element.link  [Font.color (Element.rgb 0 0 1)]
-                        { url = "http://localhost:8080/public/doc/123"
-                        , label = text "http://localhost:8080/public/doc/123"
+                        { url = "http://localhost:8080/api/document/123"
+                        , label = text "http://localhost:8080/api/document/123"
                         }
                     , Element.el [] (text model.message)
                 ]
@@ -99,16 +99,21 @@ type Msg =
 
 -- HELPERS 
 
-initialMessage url = 
-  case (Parser.run documentID url.path) of 
-    Ok docID -> documentIDString docID 
-    Err _ -> "Error.  Try this: localhost:8080/public/doc/123"
+urlMessage url = 
+  let 
+    pathAndQuery =
+      case url.query of 
+        Nothing -> url.path 
+        Just query -> url.path ++ "?" ++ query
+  in 
+    case (Parser.run urlPathParser pathAndQuery) of 
+      Ok urlResult -> urlResultString urlResult 
+      Err _ -> "Error.  Try this: localhost:8080/api/document/123"
 
-initialMessage1 url = 
-  "Initial data: url, path = " ++ url.path ++ ", " ++ (url.query |> Maybe.withDefault "")
 
 internalUrlMessage url = 
-  "Internal url request: url, path = " ++ url.path ++ ", " ++ (url.query |> Maybe.withDefault "")
+  urlMessage url
+  -- "Internal url request: url, path = " ++ url.path ++ ", " ++ (url.query |> Maybe.withDefault "")
 
 externalUrlMessage urlString = 
   "External: url = " ++ urlString
@@ -118,25 +123,28 @@ changeUrlMessage url =
 
 -- PARSER
 
-type Query =
-  Query Query_
 
-type Query_ = PublicQuery String | PrivateQuery String 
 
-query : Parser Query 
-query =
-  Parser.map Query (oneOf [publicQuery, privateQuery])
+type UrlResult = 
+    PublicQuery String 
+  | PrivateQuery String 
+  | NumericalID Int 
+  | UUID String 
 
-publicQuery : Parser Query_
+urlPathParser : Parser UrlResult
+urlPathParser =
+  (oneOf [publicQuery, privateQuery, idParser ])
+
+publicQuery : Parser UrlResult
 publicQuery = 
   succeed PublicQuery 
-    |. symbol "/api/public/doc"
+    |. symbol "/api/public/documents"
     |= queryString
 
-privateQuery : Parser Query_
+privateQuery : Parser UrlResult
 privateQuery = 
   succeed PrivateQuery 
-    |. symbol "/api/doc"
+    |. symbol "/api/documents"
     |= queryString
 
 
@@ -152,30 +160,20 @@ isQueryChar : Char -> Bool
 isQueryChar char =
   Char.isAlpha char|| Char.isDigit char ||  char == '=' ||  char == '&'
 
-type DocumentID = 
-   DocumentID DocumentID_
-   
-type DocumentID_ = NumericalID Int | UUID String 
 
-{-|  
-    "Parser.run documentID /public/doc/123 => NumericalID 123
-    "Parser.run documentID /public/doc/jxxcarslson.foo" => UUID "jxxcarlson.foo"
--}
-documentID : Parser DocumentID 
-documentID = 
-  succeed DocumentID
-    |. symbol "/public/doc/"
-    |= oneOf [ numericalID, uuid ]
+idParser: Parser UrlResult
+idParser =  
+    succeed identity
+      |. symbol "/api/document/"
+      |= oneOf [Parser.map NumericalID int, Parser.map UUID uuidString]
+    
 
 
-numericalID : Parser DocumentID_
-numericalID = 
-  Parser.map NumericalID int
-
-
-uuid : Parser DocumentID_
+uuid : Parser UrlResult
 uuid = 
-  Parser.map UUID uuidString 
+  succeed UUID
+    |. symbol "/api/document/"
+    |= uuidString 
 
 uuidString : Parser String
 uuidString =
@@ -192,10 +190,13 @@ isInnerChar : Char -> Bool
 isInnerChar char =
   isStartChar char || Char.isDigit char ||  char == '_' ||  char == '.'
 
-documentIDString : DocumentID -> String 
-documentIDString (DocumentID documentID_)  = 
-  case documentID_ of 
-    NumericalID k -> "Numerical ID = " ++ (String.fromInt k)
-    UUID str -> "UUID = " ++ str
+urlResultString : UrlResult -> String 
+urlResultString urlResult = 
+  case urlResult of 
+    NumericalID k -> "Numerical ID: " ++ (String.fromInt k)
+    UUID str -> "UUID:" ++ str
+    PublicQuery str -> "Public query: " ++ str 
+    PrivateQuery str -> "Private query: " ++ str 
+
 
     

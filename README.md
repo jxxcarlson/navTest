@@ -1,18 +1,18 @@
+**NOTE:** this is written for tag V1.2
+
 ## Purpose
 
 (1) Try to get an app usig `Browser.application` working
 with a user-supplied `index.html` file and (2) make
 it work properly on manual reload with a modified 
 url as desribed in **Testing** below.  Briefly,
-things are working when compiling with `elm make Main2.elm`
-but not with `elm make Main2.elm --output Main.js` with 
+things are working when compiling with `elm make Main.elm`
+but not with `elm make Main.elm --output Main.js` with 
 the supplied `index.html` file.
 
 To work properly, the app must be served with a web server
 configured to return the app with url `http://localhost:8080/WHATEVER`,
 where `WHATEVER` may or may not be empty.
-
-NOTE: this is written for tag V1.0.1
 
 ## Setup
 
@@ -38,11 +38,20 @@ at `http://localhost:8080`
 ## Testing
 
 In both cases, the app will function at `http://locahost:8080`.
-However, in case (1), manually loading `http://localhost:8080/public/doc/123`
+However, in case (1), manually loading `http://localhost:8080/api/document/123`
 will load the app *and will also result in the app parsing the
-url path to `Numerical ID = 123`.* Likewise, loading
-`http://localhost:8080/public/doc/jxxcarlson.foobar` will
-result in `UUID = jxxxcarlson.foobar`.
+url path to `Numerical ID: 123`.* Likewise, loading
+`http://localhost:8080/api/document/jxxcarlson.foobar` will
+result in `UUID: jxxxcarlson.foobar`.
 
 In the case of (2), both of the just-described experiments will 
 fail.  I don't know how to fix this.
+
+### Further examples
+
+`http://localhost:8080/api/documents/foo=bar` will
+result in `Private query: foo=bar`.
+
+`http://localhost:8080/api/public/documents/foo=bar` will
+result in `Public query: foo=bar`.
+
