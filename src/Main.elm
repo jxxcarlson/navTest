@@ -48,19 +48,32 @@ view_ : Model -> Html Msg
 view_ model =
    Element.layout [Font.size 14, width fill, height fill, clipY] <|
         Element.column [ width fill, height fill, padding 30, spacing 15 ] 
-                [   Element.link  [Font.color (Element.rgb 0 0 1)]
+                [   Element.el [Font.bold] (text "Try the links below.")
+                  
+                   , Element.link  [Font.color (Element.rgb 0 0 1)]
                         { url = "/api/public/documents?author=twain"
                         , label = text "Internal link: /api/public/documents?author=twain"
                         }
-
-                    -- , Element.newTabLink  [Font.color (Element.rgb 0 0 1)]
-                    --     { url = "http://elm-lang.org"
-                    --     , label = text "http:/elm-lang.org"
-                    --     }
                     , Element.link  [Font.color (Element.rgb 0 0 1)]
                         { url = "http://localhost:8080/api/document/123"
-                        , label = text "http://localhost:8080/api/document/123"
+                        , label = text "External link: http://localhost:8080/api/document/123"
                         }
+
+                    , Element.link  [Font.color (Element.rgb 0 0 1)]
+                        { url = "http://localhost:8080/api/document/jxxcarlson.foobar"
+                        , label = text "External link: http://localhost:8080/api/document/jxxcarlson.foobar"
+                        }
+
+                    , Element.link  [Font.color (Element.rgb 0 0 1)]
+                        { url = "http://localhost:8080/api/documents?author=twain"
+                        , label = text "External link: http://localhost:8080/api/documents?author=twain"
+                        }
+
+                    , Element.link  [Font.color (Element.rgb 0 0 1)]
+                        { url = "http://localhost:8080/api/public/documents?author=twain"
+                        , label = text "External link: http://localhost:8080/api/public/documents?author=twain"
+                        }
+
                     , Element.el [] (text model.message)
                 ]
     
@@ -108,28 +121,27 @@ urlMessage url =
   in 
     case (Parser.run urlPathParser pathAndQuery) of 
       Ok urlResult -> urlResultString urlResult 
-      Err _ -> "Error.  Try this: localhost:8080/api/document/123"
+      Err _ -> "Nothing parseable in URL.  Try one of the links above"
 
 
 internalUrlMessage url = 
   urlMessage url
-  -- "Internal url request: url, path = " ++ url.path ++ ", " ++ (url.query |> Maybe.withDefault "")
 
 externalUrlMessage urlString = 
   "External: url = " ++ urlString
 
 changeUrlMessage url = 
-  "UrlChange: url, path = " ++ url.path ++ ", " ++ (url.query |> Maybe.withDefault "")
+  urlMessage url
+
 
 -- PARSER
-
 
 
 type UrlResult = 
     PublicQuery String 
   | PrivateQuery String 
-  | NumericalID Int 
-  | UUID String 
+  | NumericalDocumentID Int 
+  | DocumentUUID String 
 
 urlPathParser : Parser UrlResult
 urlPathParser =
@@ -165,13 +177,13 @@ idParser: Parser UrlResult
 idParser =  
     succeed identity
       |. symbol "/api/document/"
-      |= oneOf [Parser.map NumericalID int, Parser.map UUID uuidString]
+      |= oneOf [Parser.map NumericalDocumentID int, Parser.map DocumentUUID uuidString]
     
 
 
 uuid : Parser UrlResult
 uuid = 
-  succeed UUID
+  succeed DocumentUUID
     |. symbol "/api/document/"
     |= uuidString 
 
@@ -193,8 +205,8 @@ isInnerChar char =
 urlResultString : UrlResult -> String 
 urlResultString urlResult = 
   case urlResult of 
-    NumericalID k -> "Numerical ID: " ++ (String.fromInt k)
-    UUID str -> "UUID:" ++ str
+    NumericalDocumentID k -> "Numerical document ID: " ++ (String.fromInt k)
+    DocumentUUID str -> "Document UUID: " ++ str
     PublicQuery str -> "Public query: " ++ str 
     PrivateQuery str -> "Private query: " ++ str 
 
