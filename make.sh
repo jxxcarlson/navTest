@@ -6,7 +6,7 @@ if [ "$1" = "-s" ]
 then
 echo
 echo "${color}  -s:  Simple compile app to index.html${reset}"
-/Users/carlson/Downloads/2/elm make ./src/Main2.elm
+/Users/carlson/Downloads/2/elm make ./src/Main.elm
 echo
 echo "${color}Copy files to  /usr/local/var/www/ and restart nginx${reset}"
 nginx -s stop
@@ -18,7 +18,7 @@ if [ "$1" = "-i" ]
 then
 echo
 echo "${color}  -i: Compile app to Main.js, use index.html${reset}"
-/Users/carlson/Downloads/2/elm make ./src/Main2.elm --output Main.js
+/Users/carlson/Downloads/2/elm make ./src/Main.elm --output Main.js
 echo
 echo "${color}Copy files to  /usr/local/var/www/ and restart nginx${reset}"
 nginx -s stop
