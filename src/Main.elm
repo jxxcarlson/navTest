@@ -48,7 +48,7 @@ view_ : Model -> Html Msg
 view_ model =
    Element.layout [Font.size 14, width fill, height fill, clipY] <|
         Element.column [ width fill, height fill, padding 30, spacing 15 ] 
-                [   Element.el [Font.bold] (text "Try the links below.")
+                [   Element.el [Font.bold] (text "Try the links below or use your own URL.")
                   
                    , Element.link  [Font.color (Element.rgb 0 0 1)]
                         { url = "/api/public/documents?author=twain"
@@ -74,7 +74,7 @@ view_ model =
                         , label = text "External link: http://localhost:8080/api/public/documents?author=twain"
                         }
 
-                    , Element.el [] (text model.message)
+                    , Element.el [Font.bold] (text model.message)
                 ]
     
 
