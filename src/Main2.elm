@@ -1,4 +1,4 @@
-module Main2 exposing(..)
+module Main exposing(..)
 
 import Browser.Navigation
 import Browser
@@ -25,15 +25,13 @@ main =
 
 
 type alias Model = {
-        counter : Int
-      , message : String
+        message : String
       , key : Browser.Navigation.Key
    }
 
 init : flags -> Url.Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
 init flags url key =
-    ( {  counter = 1
-        , key = key
+    ( {   key = key
         , message = initialMessage url
       } 
       , Cmd.none 
@@ -51,28 +49,30 @@ view_ model =
    Element.layout [Font.size 14, width fill, height fill, clipY] <|
         Element.column [ width fill, height fill, padding 30, spacing 15 ] 
                 [   Element.link  [Font.color (Element.rgb 0 0 1)]
-                        { url = "/yo?yada=no"
-                        , label = text "Internal link"
+                        { url = "/ladidah?friend=yes"
+                        , label = text "Internal link: /ladidah?friend=yes"
                         }
 
-                   , Element.newTabLink  [Font.color (Element.rgb 0 0 1)]
+                    , Element.newTabLink  [Font.color (Element.rgb 0 0 1)]
                         { url = "http://elm-lang.org"
-                        , label = text "elm-lang.org"
+                        , label = text "http:/elm-lang.org"
                         }
-                   , Element.el [] (text model.message)
+                    , Element.link  [Font.color (Element.rgb 0 0 1)]
+                        { url = "http://localhost:8080/public/doc/123"
+                        , label = text "http://localhost:8080/public/doc/123"
+                        }
+                    , Element.el [] (text model.message)
                 ]
     
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
    case msg of 
-    Zilch -> 
-      ( {model | counter = model.counter + 1}, Cmd.none )
     HandleUrlRequest r -> 
        case r of 
          Browser.Internal url -> 
             ( {   model | message = internalUrlMessage url }
-                , Nav.pushUrl model.key (Url.toString url)
+                    , Cmd.none -- Nav.pushUrl model.key (Url.toString url)
             )
          Browser.External urlString -> ({model | message = externalUrlMessage urlString},  Nav.load urlString)
     UrlChange url ->
@@ -94,8 +94,7 @@ onUrlChange u =
    UrlChange u
 
 type Msg = 
-    Zilch 
-    | HandleUrlRequest Browser.UrlRequest
+      HandleUrlRequest Browser.UrlRequest
     | UrlChange Url.Url
 
 -- HELPERS 
@@ -103,7 +102,7 @@ type Msg =
 initialMessage url = 
   case (Parser.run documentID url.path) of 
     Ok docID -> documentIDString docID 
-    Err _ -> "Error parsing path (" ++ url.path ++ ")"
+    Err _ -> "Error.  Try this: localhost:8080/public/doc/123"
 
 initialMessage1 url = 
   "Initial data: url, path = " ++ url.path ++ ", " ++ (url.query |> Maybe.withDefault "")

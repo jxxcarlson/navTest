@@ -2,13 +2,28 @@ color=`tput setaf 48`
 magenta=`tput setaf 5`
 reset=`tput setaf 7`
 
-echo
-echo "${color}Compile app${reset}"
-/Users/carlson/Downloads/2/elm make ./src/Main2.elm 
-
-if [ "$1" = "-r" ]
+if [ "$1" = "-s" ]
 then
 echo
-echo "${color}Start web server on port 8080${reset}"
-http-server ./dist
+echo "${color}  -s:  Simple compile app to index.html${reset}"
+/Users/carlson/Downloads/2/elm make ./src/Main2.elm
+echo
+echo "${color}Copy files to  /usr/local/var/www/ and restart nginx${reset}"
+nginx -s stop
+cp ./index.html /usr/local/var/www/
+nginx
 fi
+
+if [ "$1" = "-i" ]
+then
+echo
+echo "${color}  -i: Compile app to Main.js, use index.html${reset}"
+/Users/carlson/Downloads/2/elm make ./src/Main2.elm --output Main.js
+echo
+echo "${color}Copy files to  /usr/local/var/www/ and restart nginx${reset}"
+nginx -s stop
+cp ./src/index.html /usr/local/var/www/
+cp ./Main.js /usr/local/var/www/
+nginx
+fi
+
