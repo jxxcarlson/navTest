@@ -1,18 +1,26 @@
-**NOTE:** this is written for tag V1.2
 
 ## Purpose
 
-(1) Try to get an app usig `Browser.application` working
-with a user-supplied `index.html` file and (2) make
-it work properly on manual reload with a modified 
-url as desribed in **Testing** below.  Briefly,
-things are working when compiling with `elm make Main.elm`
-but not with `elm make Main.elm --output Main.js` with 
-the supplied `index.html` file.
+Simple demo of a `Browser.application` which can
+respond to urls like `http://localhost:8080/WHATEVER`,
+where `WHATEVER` (which can be empty), and the app
+tries to parse into a value of type `UrlData`:
 
-To work properly, the app must be served with a web server
-configured to return the app with url `http://localhost:8080/WHATEVER`,
-where `WHATEVER` may or may not be empty.
+```
+    type UrlData = 
+      PublicQuery String 
+    | PrivateQuery String 
+    | NumericalDocumentID Int 
+    | DocumentUUID String 
+```
+
+For example, 
+
+  1. loading the app manually with `http://locahost:8080`
+     is successful but creates no `UrlData` value.
+
+  2. Loading the app manually with `http://locahost:8080/api/document/123`
+     is successful and creates the `UrlData` value `NumericalDocumentId 123`.
 
 ## Setup
 
@@ -24,30 +32,18 @@ that you are using the right compiler binary.  You
 will have to change `Users/carlson/Downloads/2/elm`
 to be compatible with your local setup.
 
-(1) Use `sh make.sh -s` to compile the app using
-`elm make`.  The script will copy the resulting
-`index.html` file to `/usr/local/var/www/`
-and will run `nginx` so as to serve the 
-app at `http://localhost:8080`
-
-(2) Use `sh make.sh -i` to compile to `Main.js` 
+Use `sh make.sh -i` to compile to `Main.js` 
 and use the supplied `index.html` file.
-As before, the app will be served
-at `http://localhost:8080`
 
 ## Testing
 
-In both cases, the app will function at `http://locahost:8080`.
-However, in case (1), manually loading `http://localhost:8080/api/document/123`
-will load the app *and will also result in the app parsing the
-url path to `Numerical ID: 123`.* Likewise, loading
+The app boots up with some links that you can click on for testing.
+
+### Further examples
+
 `http://localhost:8080/api/document/jxxcarlson.foobar` will
 result in `UUID: jxxxcarlson.foobar`.
 
-In the case of (2), both of the just-described experiments will 
-fail.  I don't know how to fix this.
-
-### Further examples
 
 `http://localhost:8080/api/documents/foo=bar` will
 result in `Private query: foo=bar`.

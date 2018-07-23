@@ -146,7 +146,7 @@ urlMessage url =
         Just query -> url.path ++ "?" ++ query
   in 
     case (Parser.run urlPathParser pathAndQuery) of 
-      Ok urlResult -> urlResultString urlResult 
+      Ok urlResult -> urlDataString urlResult 
       Err _ -> "Nothing parseable in URL.  Try one of the links above"
 
 
@@ -163,23 +163,24 @@ changeUrlMessage url =
 -- PARSER
 
 
-type UrlResult = 
+type UrlData = 
     PublicQuery String 
   | PrivateQuery String 
   | NumericalDocumentID Int 
   | DocumentUUID String 
 
-urlPathParser : Parser UrlResult
+
+urlPathParser : Parser UrlData
 urlPathParser =
   (oneOf [publicQuery, privateQuery, idParser ])
 
-publicQuery : Parser UrlResult
+publicQuery : Parser UrlData
 publicQuery = 
   succeed PublicQuery 
     |. symbol "/api/public/documents"
     |= queryString
 
-privateQuery : Parser UrlResult
+privateQuery : Parser UrlData
 privateQuery = 
   succeed PrivateQuery 
     |. symbol "/api/documents"
@@ -199,7 +200,7 @@ isQueryChar char =
   Char.isAlpha char|| Char.isDigit char ||  char == '=' ||  char == '&'
 
 
-idParser: Parser UrlResult
+idParser: Parser UrlData
 idParser =  
     succeed identity
       |. symbol "/api/document/"
@@ -207,7 +208,7 @@ idParser =
     
 
 
-uuid : Parser UrlResult
+uuid : Parser UrlData
 uuid = 
   succeed DocumentUUID
     |. symbol "/api/document/"
@@ -228,8 +229,8 @@ isInnerChar : Char -> Bool
 isInnerChar char =
   isStartChar char || Char.isDigit char ||  char == '_' ||  char == '.'
 
-urlResultString : UrlResult -> String 
-urlResultString urlResult = 
+urlDataString : UrlData -> String 
+urlDataString urlResult = 
   case urlResult of 
     NumericalDocumentID k -> "Numerical document ID: " ++ (String.fromInt k)
     DocumentUUID str -> "Document UUID: " ++ str
