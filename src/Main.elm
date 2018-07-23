@@ -8,8 +8,6 @@ import Html exposing(Html)
 import Json.Encode
 import Html.Attributes 
 
-import Element exposing (..)
-import Element.Font as Font
 
 import Parser exposing(..)
 
@@ -52,17 +50,8 @@ view model =
 
 view_ : Model -> Html Msg
 view_ model =
-   Element.layout [Font.size 14, padding 20] <|
-        Element.column [spacing 20] [
-           Element.el [] (Element.text "Math text:")
-          , mathTextElement model.sourceText  
-          , Element.el [] (Element.text "^^^^^^^^^^^^^^")      
-        ]
+  mathText model.sourceText 
 
-
-mathTextElement : String -> Element msg 
-mathTextElement content = 
-  Element.paragraph [  ] [ Element.html (mathText content) ]
 
 mathText : String -> Html msg
 mathText content =
