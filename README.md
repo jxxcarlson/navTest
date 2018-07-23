@@ -1,26 +1,8 @@
 
 ## Purpose
 
-Simple demo of a `Browser.application` which can
-respond to urls like `http://localhost:8080/WHATEVER`,
-where `WHATEVER` (which can be empty), and the app
-tries to parse into a value of type `UrlData`:
-
-```
-    type UrlData = 
-      PublicQuery String 
-    | PrivateQuery String 
-    | NumericalDocumentID Int 
-    | DocumentUUID String 
-```
-
-For example, 
-
-  1. loading the app manually with `http://locahost:8080`
-     is successful but creates no `UrlData` value.
-
-  2. Loading the app manually with `http://locahost:8080/api/document/123`
-     is successful and creates the `UrlData` value `NumericalDocumentId 123`.
+Simple demo of a `Browser.application` which renders
+math text using custom elements.
 
 ## Setup
 
@@ -35,19 +17,9 @@ to be compatible with your local setup.
 Use `sh make.sh -i` to compile to `Main.js` 
 and use the supplied `index.html` file.
 
-## Testing
+## Reference
 
-The app boots up with some links that you can click on for testing.
+[math-text Element msg](https://ellie-test-19-cutover.now.sh/RjYvSGYjPYa1)
+[math-text Element msg](https://ellie-test-19-cutover.now.sh/RkSkxVxG98a1)
 
-### Further examples
-
-`http://localhost:8080/api/document/jxxcarlson.foobar` will
-result in `UUID: jxxxcarlson.foobar`.
-
-
-`http://localhost:8080/api/documents/foo=bar` will
-result in `Private query: foo=bar`.
-
-`http://localhost:8080/api/public/documents/foo=bar` will
-result in `Public query: foo=bar`.
 

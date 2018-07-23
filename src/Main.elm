@@ -1,18 +1,12 @@
-port module Main exposing(..)
-
-{- 
-
-Minimal ports example from 
-
-  https://github.com/halfzebra/elm-examples/tree/master/examples/ports
-
--}
+module Main exposing(..)
 
 import Browser.Navigation
 import Browser
 import Url
 import Browser.Navigation as Nav
 import Html exposing(Html)
+import Json.Encode
+import Html.Attributes 
 
 import Element exposing (..)
 import Element.Font as Font
@@ -34,68 +28,48 @@ main =
 
 type alias Model = {
         message : String
-      , number : Int 
+      , sourceText : String 
       , key : Browser.Navigation.Key
    }
-
-port output : () -> Cmd msg
-
-
-port input : (Int -> msg) -> Sub msg
 
 
 init : flags -> Url.Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
 init flags url key =
     ( {   key = key
-        , number = 0
+        , sourceText = "$a^2 + b^2 = c^2$"
         , message = urlMessage url
       } 
-      , output ()  -- Send a message through port upon initialization. 
+      , Cmd.none 
     )
 
 
 
 view : Model -> Browser.Document Msg
 view model =
-  {   title = "Nav Test A"
+  {   title = "Nav Test B"
     , body = [view_ model]
   }
 
 view_ : Model -> Html Msg
 view_ model =
-   Element.layout [Font.size 14, width fill, height fill, clipY] <|
-        Element.column [ width fill, height fill, padding 30, spacing 15 ] 
-                [   Element.el [Font.bold] (text "Try the links below or use your own URL.")
-                  
-                   , Element.link  [Font.color (Element.rgb 0 0 1)]
-                        { url = "/api/public/documents?author=twain"
-                        , label = text "Internal link: /api/public/documents?author=twain"
-                        }
-                    , Element.link  [Font.color (Element.rgb 0 0 1)]
-                        { url = "http://localhost:8080/api/document/123"
-                        , label = text "External link: http://localhost:8080/api/document/123"
-                        }
+   Element.layout [Font.size 14, padding 20] <|
+        Element.column [spacing 20] [
+           Element.el [] (Element.text "Math text:")
+          , mathTextElement model.sourceText  
+          , Element.el [] (Element.text "^^^^^^^^^^^^^^")      
+        ]
 
-                    , Element.link  [Font.color (Element.rgb 0 0 1)]
-                        { url = "http://localhost:8080/api/document/jxxcarlson.foobar"
-                        , label = text "External link: http://localhost:8080/api/document/jxxcarlson.foobar"
-                        }
 
-                    , Element.link  [Font.color (Element.rgb 0 0 1)]
-                        { url = "http://localhost:8080/api/documents?author=twain"
-                        , label = text "External link: http://localhost:8080/api/documents?author=twain"
-                        }
+mathTextElement : String -> Element msg 
+mathTextElement content = 
+  Element.paragraph [  ] [ Element.html (mathText content) ]
 
-                    , Element.link  [Font.color (Element.rgb 0 0 1)]
-                        { url = "http://localhost:8080/api/public/documents?author=twain"
-                        , label = text "External link: http://localhost:8080/api/public/documents?author=twain"
-                        }
+mathText : String -> Html msg
+mathText content =
+    Html.node "math-text"
+        [ Html.Attributes.property "content" (Json.Encode.string content) ]
+        []
 
-                    , Element.el [Font.bold] (text model.message)
-
-                    , Element.el [] (text ("Number: " ++ String.fromInt model.number))
-                ]
-    
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -109,14 +83,12 @@ update msg model =
          Browser.External urlString -> ({model | message = externalUrlMessage urlString},  Nav.load urlString)
     UrlChange url ->
         ({model | message = changeUrlMessage url}, Nav.load (Url.toString url))
-   
-    Get x ->
-      ( {model | number = x}, Cmd.none )
+  
         
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-   input Get
+   Sub.none 
 
 
 onUrlRequest : Browser.UrlRequest -> Msg
@@ -134,7 +106,6 @@ onUrlChange u =
 type Msg = 
       HandleUrlRequest Browser.UrlRequest
     | UrlChange Url.Url
-    | Get Int
 
 -- HELPERS 
 

@@ -18,12 +18,11 @@ if [ "$1" = "-i" ]
 then
 echo
 echo "${color}  -i: Compile app to Main.js, use index.html${reset}"
-/Users/carlson/Downloads/2/elm make ./src/Main.elm --output Main.js
+/Users/carlson/Downloads/2/elm make ./src/Main.elm --output /usr/local/var/www/Main.js
 echo
 echo "${color}Copy files to  /usr/local/var/www/ and restart nginx${reset}"
 nginx -s stop
 cp ./src/index.html /usr/local/var/www/
-cp ./Main.js /usr/local/var/www/
 nginx
 fi
 
