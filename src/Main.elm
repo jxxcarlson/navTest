@@ -44,7 +44,7 @@ init flags url key =
 
 view : Model -> Browser.Document Msg
 view model =
-  {   title = "Nav Test B"
+  {   title = "Browser.application with math-text (Html msg)"
     , body = [view_ model]
   }
 
