@@ -1,4 +1,12 @@
-module Main exposing(..)
+port module Main exposing(..)
+
+{- 
+
+Minimal ports example from 
+
+  https://github.com/halfzebra/elm-examples/tree/master/examples/ports
+
+-}
 
 import Browser.Navigation
 import Browser
@@ -26,21 +34,30 @@ main =
 
 type alias Model = {
         message : String
+      , number : Int 
       , key : Browser.Navigation.Key
    }
+
+port output : () -> Cmd msg
+
+
+port input : (Int -> msg) -> Sub msg
+
 
 init : flags -> Url.Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
 init flags url key =
     ( {   key = key
+        , number = 0
         , message = urlMessage url
       } 
-      , Cmd.none 
+      , output ()  -- Send a message through port upon initialization. 
     )
+
 
 
 view : Model -> Browser.Document Msg
 view model =
-  {   title = "Nav Test"
+  {   title = "Nav Test A"
     , body = [view_ model]
   }
 
@@ -75,6 +92,8 @@ view_ model =
                         }
 
                     , Element.el [Font.bold] (text model.message)
+
+                    , Element.el [] (text ("Number: " ++ String.fromInt model.number))
                 ]
     
 
@@ -90,11 +109,14 @@ update msg model =
          Browser.External urlString -> ({model | message = externalUrlMessage urlString},  Nav.load urlString)
     UrlChange url ->
         ({model | message = changeUrlMessage url}, Nav.load (Url.toString url))
+   
+    Get x ->
+      ( {model | number = x}, Cmd.none )
         
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+   input Get
 
 
 onUrlRequest : Browser.UrlRequest -> Msg
@@ -106,9 +128,13 @@ onUrlChange : Url.Url -> Msg
 onUrlChange u =
    UrlChange u
 
+
+-- MSG
+
 type Msg = 
       HandleUrlRequest Browser.UrlRequest
     | UrlChange Url.Url
+    | Get Int
 
 -- HELPERS 
 
